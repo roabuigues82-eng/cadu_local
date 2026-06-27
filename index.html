@@ -1045,7 +1045,7 @@ function applyF(){
     if(curCat!=='all'&&p.categoria!==curCat) return false;
     const e=est(p);
     if(curSF==='urg'&&e!=='u') return false;
-    if(curSF==='p25'&&!['u','p25'].includes(e)) return false;
+    if(curSF==='p25'&&dias(p.fecha)!==25) return false;
     if(curSF==='p'&&!['u','p25','p'].includes(e)) return false;
     if(q&&!p.nombre.toLowerCase().includes(q)&&!(p.codigo||'').includes(q)) return false;
     return true;
