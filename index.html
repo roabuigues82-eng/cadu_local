@@ -921,7 +921,7 @@ function scheduleNotifications(){
 function buildHome(){
   const urg=productos.filter(p=>est(p)==='u').length;
   const hoy_count=productos.filter(p=>dias(p.fecha)===0).length;
-  const p25=productos.filter(p=>{const d=dias(p.fecha);return d!==null&&d>=0&&d<=25;}).length;
+  const p25=productos.filter(p=>dias(p.fecha)===25).length;
   const total=productos.length;
   const ht=$('home-title'), hs=$('home-sub');
   if(ht) ht.textContent='Hola, '+tienda.nombre;
@@ -1417,7 +1417,7 @@ function reducirDesdeScanner(pid){ editId=pid; $('scan-res').innerHTML=''; openR
 // ═══════════════════════════════════════════
 function buildExp(){
   const urg=productos.filter(p=>est(p)==='u').length;
-  const p25=productos.filter(p=>{const d=dias(p.fecha);return d!==null&&d>=0&&d<=25;}).length;
+  const p25=productos.filter(p=>dias(p.fecha)===25).length;
   const cad=productos.filter(p=>est(p)==='c').length;
   $('exp-stats').innerHTML=
     '<div class="sbox"><div class="sbox-val">'+productos.length+'</div><div class="sbox-lbl">Total</div></div>'+
