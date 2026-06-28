@@ -523,6 +523,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
       <button class="mb-d" id="mb-del" style="display:none">Borrar</button>
       <button class="mb-green" id="mb-reducir" style="display:none">📉 Reducir</button>
       <button class="mb-s" id="mb-vendido" style="display:none;background:#16a34a">✅ Vendido</button>
+      <button class="mb-d" id="mb-perdida" style="display:none">🗑️ Pérdida</button>
       <button class="mb-c" id="mb-cancel-prod">Cancelar</button>
       <button class="mb-s" id="mb-save-prod">Guardar</button>
     </div>
@@ -578,6 +579,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
       <button class="mb-d" id="mb-del-red">Eliminar</button>
       <button class="mb-c" id="mb-cancel-red-edit">Cancelar</button>
       <button class="mb-s" id="mb-save-red-edit">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PERDIDA -->
+<div class="mbg" id="modal-perdida">
+  <div class="modal">
+    <div class="mdrag"></div>
+    <h3>Registrar pérdida</h3>
+    <div style="background:#fef2f2;border:2px solid #fecaca;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px;color:#991b1b" id="perdida-prod-info"></div>
+    <div class="mf">
+      <label>Unidades perdidas</label>
+      <input id="p-unidades" type="number" inputmode="numeric" min="1" placeholder="1">
+    </div>
+    <div class="mf">
+      <label>Precio por unidad (€)</label>
+      <input id="p-precio-u" type="number" step="0.05" inputmode="decimal" placeholder="0.00">
+    </div>
+    <div class="mf">
+      <label>Motivo</label>
+      <select id="p-motivo">
+        <option value="caducado">📅 Caducado</option>
+        <option value="rotura">💥 Rotura / daño</option>
+        <option value="otro">❓ Otro</option>
+      </select>
+    </div>
+    <div class="mf">
+      <label>Fecha</label>
+      <input id="p-fecha-p" type="date">
+    </div>
+    <div class="mbtns">
+      <button class="mb-c" id="mb-cancel-perdida">Cancelar</button>
+      <button class="mb-d" id="mb-save-perdida">🗑️ Registrar pérdida</button>
     </div>
   </div>
 </div>
@@ -1223,6 +1257,7 @@ function openEdit(id){
   $('mb-del').style.display='block';
   $('mb-reducir').style.display='block';
   $('mb-vendido').style.display='block';
+  $('mb-perdida').style.display='block';
   $('modal-prod').classList.add('on');
 }
 
@@ -1236,6 +1271,7 @@ function openNew(){
   $('mb-del').style.display='none';
   $('mb-reducir').style.display='none';
   $('mb-vendido').style.display='none';
+  $('mb-perdida').style.display='none';
   $('modal-prod').classList.add('on');
 }
 
@@ -1781,6 +1817,8 @@ function buildAnalisis(){
   const totalRecuperado=reds.reduce((s,r)=>s+(r.precio_reducido||0)*r.unidades,0);
   const totalDescuento=reds.reduce((s,r)=>s+((r.precio_original||0)-(r.precio_reducido||0))*r.unidades,0);
   const totalGenerado=totalVentasNormal+totalRecuperado;
+  const perdidas=db.perdidas||[];
+  const totalPerdidas=perdidas.reduce((s,p)=>s+(p.total||0),0);
 
   // Por mes
   const porMes={};
@@ -1817,10 +1855,12 @@ function buildAnalisis(){
 
   el.innerHTML=
     '<div class="stats-grid" style="padding:12px">'+
-      '<div class="sbox info"><div class="sbox-val">'+totalVentasNormal.toFixed(2)+'€</div><div class="sbox-lbl">Ventas precio normal</div></div>'+
-      '<div class="sbox warn"><div class="sbox-val">'+totalRecuperado.toFixed(2)+'€</div><div class="sbox-lbl">Recuperado reduciendo</div></div>'+
-      '<div class="sbox ok"><div class="sbox-val">'+totalGenerado.toFixed(2)+'€</div><div class="sbox-lbl">Total generado</div></div>'+
-      '<div class="sbox"><div class="sbox-val">'+totalDescuento.toFixed(2)+'€</div><div class="sbox-lbl">Descuento aplicado</div></div>'+
+      '<div class="sbox info"><div class="sbox-val">'+totalVentasNormal.toFixed(2)+'€</div><div class="sbox-lbl">✅ Ingresado precio normal</div></div>'+
+      '<div class="sbox warn"><div class="sbox-val">'+totalRecuperado.toFixed(2)+'€</div><div class="sbox-lbl">📉 Recuperado reduciendo</div></div>'+
+      '<div class="sbox ok"><div class="sbox-val">'+totalGenerado.toFixed(2)+'€</div><div class="sbox-lbl">💰 Total ingresado</div></div>'+
+      '<div class="sbox" style="border-color:#fecaca"><div class="sbox-val" style="color:#dc2626">'+totalDescuento.toFixed(2)+'€</div><div class="sbox-lbl">⚠️ Pérdida por reducción</div></div>'+
+      '<div class="sbox" style="border-color:#fca5a5"><div class="sbox-val" style="color:#991b1b">'+totalPerdidas.toFixed(2)+'€</div><div class="sbox-lbl">🗑️ Pérdidas totales</div></div>'+
+      '<div class="sbox ok"><div class="sbox-val">'+(totalGenerado-totalPerdidas-totalDescuento>=0?'+':'')+( totalGenerado-totalPerdidas-totalDescuento).toFixed(2)+'€</div><div class="sbox-lbl">📊 Balance neto</div></div>'+
     '</div>'+
     '<div style="padding:0 12px 8px;display:flex;gap:10px;font-size:12px">'+
       '<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:#0284c7;border-radius:3px;display:inline-block"></span>Precio normal</span>'+
@@ -1843,19 +1883,82 @@ function exportAnalisisXLSX(){
 }
 
 function buildAnalisisXL(ventas,reds){
+  const db=JSON.parse(localStorage.getItem('cadutedi_local_db_v1')||'{}');
+  const perdidas=db.perdidas||[];
   const wb=XLSX.utils.book_new();
-  // Hoja ventas normales
+  const ventasNormal=ventas.filter(v=>v.tipo==='normal');
+  const totalNormal=ventasNormal.reduce((s,v)=>s+(v.total||0),0);
+  const totalRecup=reds.reduce((s,r)=>s+(r.precio_reducido||0)*r.unidades,0);
+  const totalDesc=reds.reduce((s,r)=>s+((r.precio_original||0)-(r.precio_reducido||0))*r.unidades,0);
+  const totalPerd=perdidas.reduce((s,p)=>s+(p.total||0),0);
+  const resumen=[
+    {'Concepto':'Ingresado precio normal','Importe (EUR)':totalNormal.toFixed(2)},
+    {'Concepto':'Recuperado reduciendo','Importe (EUR)':totalRecup.toFixed(2)},
+    {'Concepto':'Total ingresado','Importe (EUR)':(totalNormal+totalRecup).toFixed(2)},
+    {'Concepto':'Perdida por reduccion','Importe (EUR)':totalDesc.toFixed(2)},
+    {'Concepto':'Perdidas totales caducados/roturas','Importe (EUR)':totalPerd.toFixed(2)},
+    {'Concepto':'Balance neto','Importe (EUR)':(totalNormal+totalRecup-totalDesc-totalPerd).toFixed(2)},
+  ];
+  const wsR=XLSX.utils.json_to_sheet(resumen);
+  wsR['!cols']=[{wch:40},{wch:15}];
+  XLSX.utils.book_append_sheet(wb,wsR,'Resumen');
   if(ventas.length){
-    const ws1=XLSX.utils.json_to_sheet(ventas.map(v=>({'Producto':v.producto_nombre,'Categoría':v.categoria,'Unidades':v.unidades||1,'Precio unitario':v.precio_unitario||v.precio,'Total':v.total||(v.precio||0),'Tipo':v.tipo==='normal'?'Precio normal':'Precio reducido','Fecha':v.fecha})));
-    XLSX.utils.book_append_sheet(wb,ws1,'Ventas normales');
+    const ws1=XLSX.utils.json_to_sheet(ventas.map(v=>({'Producto':v.producto_nombre,'Categoria':v.categoria,'Precio unitario':v.precio_unitario||v.precio,'Unidades':v.unidades||1,'Total':v.total||(v.precio||0),'Tipo':v.tipo==='normal'?'Precio normal':'Precio reducido','Fecha':v.fecha})));
+    ws1['!cols']=[{wch:35},{wch:22},{wch:14},{wch:10},{wch:12},{wch:16},{wch:12}];
+    XLSX.utils.book_append_sheet(wb,ws1,'Ventas');
   }
-  // Hoja reducciones
   if(reds.length){
-    const ws2=XLSX.utils.json_to_sheet(reds.map(r=>({'Producto':r.producto_nombre,'Precio original':r.precio_original,'Precio reducido':r.precio_reducido,'Unidades':r.unidades,'Recuperado':((r.precio_reducido||0)*r.unidades).toFixed(2),'Descuento':(((r.precio_original||0)-(r.precio_reducido||0))*r.unidades).toFixed(2),'Fecha':r.fecha_reduccion})));
+    const ws2=XLSX.utils.json_to_sheet(reds.map(r=>({'Producto':r.producto_nombre,'Precio original':r.precio_original,'Precio reducido':r.precio_reducido,'Unidades':r.unidades,'Recuperado':((r.precio_reducido||0)*r.unidades).toFixed(2),'Perdida por reduccion':(((r.precio_original||0)-(r.precio_reducido||0))*r.unidades).toFixed(2),'Fecha':r.fecha_reduccion})));
+    ws2['!cols']=[{wch:35},{wch:14},{wch:14},{wch:10},{wch:12},{wch:20},{wch:12}];
     XLSX.utils.book_append_sheet(wb,ws2,'Reducciones');
   }
+  if(perdidas.length){
+    const ws3=XLSX.utils.json_to_sheet(perdidas.map(p=>({'Producto':p.producto_nombre,'Categoria':p.categoria,'Precio unitario':p.precio_unitario,'Unidades':p.unidades,'Total perdida':p.total,'Motivo':p.motivo,'Fecha':p.fecha})));
+    ws3['!cols']=[{wch:35},{wch:22},{wch:14},{wch:10},{wch:14},{wch:12},{wch:12}];
+    XLSX.utils.book_append_sheet(wb,ws3,'Perdidas');
+  }
   XLSX.writeFile(wb,'analisis_caducidades_'+hoy()+'.xlsx');
-  toast('✅ Excel descargado');
+  toast('Excel: '+ventas.length+' ventas, '+reds.length+' reducciones, '+perdidas.length+' perdidas');
+}
+
+function openPerdida(){
+  const p=productos.find(x=>x.id==editId); if(!p) return;
+  closeProd();
+  document.getElementById('perdida-prod-info').innerHTML=
+    '<b>'+p.nombre+'</b><br>Precio: <b>'+(p.precio!=null?p.precio.toFixed(2)+'€':'—')+'</b>';
+  document.getElementById('p-unidades').value='1';
+  document.getElementById('p-precio-u').value=p.precio?p.precio.toFixed(2):'';
+  document.getElementById('p-motivo').value='caducado';
+  document.getElementById('p-fecha-p').value=hoy();
+  document.getElementById('modal-perdida').classList.add('on');
+}
+
+function closePerdida(){ document.getElementById('modal-perdida').classList.remove('on'); }
+
+async function savePerdida(){
+  const p=productos.find(x=>x.id==editId); if(!p) return;
+  const unidades=parseInt(document.getElementById('p-unidades').value)||1;
+  const precio=parseFloat(document.getElementById('p-precio-u').value)||(p.precio||0);
+  const motivo=document.getElementById('p-motivo').value;
+  const fecha=document.getElementById('p-fecha-p').value||hoy();
+  const db=JSON.parse(localStorage.getItem('cadutedi_local_db_v1')||'{}');
+  if(!db.perdidas) db.perdidas=[];
+  db.perdidas.push({
+    id:'per-'+Date.now(),
+    producto_id:p.id,
+    producto_nombre:p.nombre,
+    categoria:p.categoria||'',
+    precio_unitario:precio,
+    unidades:unidades,
+    total:precio*unidades,
+    motivo:motivo,
+    fecha:fecha,
+    created_at:new Date().toISOString()
+  });
+  localStorage.setItem('cadutedi_local_db_v1',JSON.stringify(db));
+  toast('🗑️ Pérdida registrada: '+(precio*unidades).toFixed(2)+'€');
+  closePerdida();
+  buildHome();
 }
 
 function openVenta(){
@@ -2000,6 +2103,10 @@ document.addEventListener('DOMContentLoaded',function(){
   $('mb-save-prod').addEventListener('click', saveItem);
   $('mb-del').addEventListener('click', deleteItem);
   document.getElementById('mb-vendido').addEventListener('click', openVenta);
+  document.getElementById('mb-perdida').addEventListener('click', openPerdida);
+  document.getElementById('mb-cancel-perdida').addEventListener('click', closePerdida);
+  document.getElementById('mb-save-perdida').addEventListener('click', savePerdida);
+  document.getElementById('modal-perdida').addEventListener('click', e=>{if(e.target===document.getElementById('modal-perdida')) closePerdida();});
   $('mb-reducir').addEventListener('click', openReducir);
   $('modal-prod').addEventListener('click', e=>{if(e.target===$('modal-prod')){ stopScanModal(); closeProd(); }});
 
@@ -2054,6 +2161,9 @@ document.addEventListener('DOMContentLoaded',function(){
   window.marcarVendido = marcarVendido;
   window.goAnalisis = goAnalisis;
   window.openVenta = openVenta;
+  window.openPerdida = openPerdida;
+  window.closePerdida = closePerdida;
+  window.savePerdida = savePerdida;
   window.closeVenta = closeVenta;
   window.saveVenta = saveVenta;
   window.exportAnalisisXLSX = exportAnalisisXLSX;
