@@ -1025,9 +1025,10 @@ function buildResumen(){
 
   let rows = '';
   Object.entries(porCat).forEach(([cat,prods])=>{
-    rows += '<tr><td colspan="3" style="background:#0369a1;color:#fff;font-weight:700;padding:8px 10px;font-size:13px">'+cat+' ('+prods.length+')</td></tr>';
+    rows += '<tr><td colspan="4" style="background:#0369a1;color:#fff;font-weight:700;padding:8px 10px;font-size:13px">'+cat+' ('+prods.length+')</td></tr>';
     prods.forEach(p=>{
       rows += '<tr><td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:13px">'+p.nombre+'</td>'+
+              '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:11px;text-align:center;font-family:monospace;color:#64748b">'+(p.codigo||'—')+'</td>'+
               '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:13px;text-align:center;font-family:monospace">'+fmt(p.fecha)+'</td>'+
               '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:13px;text-align:right;color:#dc2626;font-weight:600">'+(p.precio!=null?p.precio.toFixed(2)+'€':'—')+'</td></tr>';
     });
@@ -1042,6 +1043,7 @@ function buildResumen(){
     '<table style="width:100%;border-collapse:collapse">'+
       '<thead><tr style="background:#f1f5f9">'+
         '<th style="padding:8px 10px;text-align:left;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Nombre</th>'+
+        '<th style="padding:8px 10px;text-align:center;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Código</th>'+
         '<th style="padding:8px 10px;text-align:center;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Caduca</th>'+
         '<th style="padding:8px 10px;text-align:right;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Precio</th>'+
       '</tr></thead>'+
@@ -1094,9 +1096,10 @@ function build25(){
 
   let rows = '';
   Object.entries(porCat).forEach(([cat,ps])=>{
-    rows += '<tr><td colspan="3" style="background:#d97706;color:#fff;font-weight:700;padding:8px 10px;font-size:13px">'+cat+' ('+ps.length+')</td></tr>';
+    rows += '<tr><td colspan="4" style="background:#d97706;color:#fff;font-weight:700;padding:8px 10px;font-size:13px">'+cat+' ('+ps.length+')</td></tr>';
     ps.forEach(p=>{
       rows += '<tr><td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:13px">'+p.nombre+'</td>'+
+              '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:11px;text-align:center;font-family:monospace;color:#64748b">'+(p.codigo||'—')+'</td>'+
               '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:13px;text-align:center;font-family:monospace">'+fmt(p.fecha)+'</td>'+
               '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:13px;text-align:right;color:#d97706;font-weight:600">'+(p.precio!=null?p.precio.toFixed(2)+'€':'—')+'</td></tr>';
     });
@@ -1111,6 +1114,7 @@ function build25(){
     '<table style="width:100%;border-collapse:collapse">'+
       '<thead><tr style="background:#f1f5f9">'+
         '<th style="padding:8px 10px;text-align:left;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Nombre</th>'+
+        '<th style="padding:8px 10px;text-align:center;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Código</th>'+
         '<th style="padding:8px 10px;text-align:center;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Caduca</th>'+
         '<th style="padding:8px 10px;text-align:right;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Precio</th>'+
       '</tr></thead>'+
