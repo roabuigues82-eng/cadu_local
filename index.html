@@ -320,6 +320,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
       <div class="scroll" id="resumen-content" style="background:#fff;padding:16px"></div>
     </div>
 
+    <!-- 25 DIAS -->
+    <div class="page" id="pg-25">
+      <div class="pg-hdr">
+        <button class="back-btn" id="back-25">‹ Inicio</button>
+        <span class="pg-title" style="margin-left:6px">Caducan en 25 días</span>
+        <button id="btn-print-25" style="margin-left:auto;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;padding:5px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">🖨️ Imprimir</button>
+      </div>
+      <div class="scroll" id="content-25" style="background:#fff;padding:16px"></div>
+    </div>
+
     <!-- LISTA -->
     <div class="page" id="pg-lista">
       <div class="pg-hdr">
@@ -928,7 +938,7 @@ function buildHome(){
   if(hs) hs.textContent='Sin caducidades, sin pérdidas. Tú lo haces posible';
   $('home-grid').innerHTML=
     '<div class="gc gc1" data-action="goResumen"><span class="gc-arr">›</span><div class="gc-ico">🔴</div><div class="gc-val">'+hoy_count+'</div><div class="gc-lbl">Caducan hoy</div></div>'+
-    '<div class="gc gc2" data-action="go25"><span class="gc-arr">›</span><div class="gc-ico">⏰</div><div class="gc-val">'+p25+'</div><div class="gc-lbl">Caducan en 25d</div></div>'+
+    '<div class="gc gc2" data-action="go25new"><span class="gc-arr">›</span><div class="gc-ico">⏰</div><div class="gc-val">'+p25+'</div><div class="gc-lbl">Caducan en 25d</div></div>'+
     '<div class="gc gc3" data-action="goLista" data-sf="all"><span class="gc-arr">›</span><div class="gc-ico">📦</div><div class="gc-val">'+total+'</div><div class="gc-lbl">Todos los productos</div></div>'+
     '<div class="gc gc4" data-action="openNew"><span class="gc-arr">›</span><div class="gc-ico">➕</div><div class="gc-val"></div><div class="gc-lbl">Añadir producto</div></div>';
 }
@@ -1017,6 +1027,61 @@ function goLista(sf='all', cat='all'){
 }
 
 function go25(){ goLista('p25','all'); }
+
+function go25new(){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  $('pg-25').classList.add('on');
+  build25();
+}
+
+function build25(){
+  const prods = productos.filter(p=>dias(p.fecha)===25).sort((a,b)=>(a.categoria||'').localeCompare(b.categoria||''));
+  const el = $('content-25');
+  const fecha = new Date().toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  if(!prods.length){
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b"><div style="font-size:48px;margin-bottom:12px">✅</div><div style="font-size:18px;font-weight:600;color:#0c4a6e">Sin productos a 25 días hoy</div><div style="font-size:14px;margin-top:8px;color:#64748b">'+fecha+'</div></div>';
+    return;
+  }
+
+  const porCat = {};
+  prods.forEach(p=>{ if(!porCat[p.categoria]) porCat[p.categoria]=[]; porCat[p.categoria].push(p); });
+
+  let rows = '';
+  Object.entries(porCat).forEach(([cat,ps])=>{
+    rows += '<tr><td colspan="3" style="background:#d97706;color:#fff;font-weight:700;padding:8px 10px;font-size:13px">'+cat+' ('+ps.length+')</td></tr>';
+    ps.forEach(p=>{
+      rows += '<tr><td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:13px">'+p.nombre+'</td>'+
+              '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:13px;text-align:center;font-family:monospace">'+fmt(p.fecha)+'</td>'+
+              '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:13px;text-align:right;color:#d97706;font-weight:600">'+(p.precio!=null?p.precio.toFixed(2)+'€':'—')+'</td></tr>';
+    });
+  });
+
+  el.innerHTML = '<div style="font-family:Arial,sans-serif;color:#0c4a6e">'+
+    '<div style="text-align:center;margin-bottom:16px">'+
+      '<div style="font-size:22px;font-weight:800;color:#d97706">⏰ Caducan en 25 días</div>'+
+      '<div style="font-size:13px;color:#64748b;margin-top:4px">'+fecha+' · '+prods.length+' producto'+(prods.length>1?'s':'')+'</div>'+
+      '<div style="font-size:12px;color:#64748b">Tienda: '+(tienda?tienda.nombre:'')+'</div>'+
+    '</div>'+
+    '<table style="width:100%;border-collapse:collapse">'+
+      '<thead><tr style="background:#f1f5f9">'+
+        '<th style="padding:8px 10px;text-align:left;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Nombre</th>'+
+        '<th style="padding:8px 10px;text-align:center;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Caduca</th>'+
+        '<th style="padding:8px 10px;text-align:right;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Precio</th>'+
+      '</tr></thead>'+
+      '<tbody>'+rows+'</tbody>'+
+    '</table>'+
+  '</div>';
+}
+
+function print25(){
+  const contenido = $('content-25').innerHTML;
+  const win = window.open('','_blank');
+  if(!win){toast('Activa ventanas emergentes');return;}
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>25 días</title><style>body{font-family:Arial,sans-serif;margin:20px;color:#0c4a6e}@media print{body{margin:10px}}</style></head><body>'+contenido+'</body></html>');
+  win.document.close();
+  setTimeout(()=>win.print(),500);
+}
 
 // ═══════════════════════════════════════════
 // LISTA
@@ -1662,6 +1727,7 @@ document.addEventListener('click',function(e){
   else if(a==='setCat') setCat(cat||'all');
   else if(a==='openNew') openNew();
   else if(a==='goResumen') goResumen();
+  else if(a==='go25new') go25new();
   else if(a==='openEditRed') openEditRed(id);
 });
 
@@ -1688,6 +1754,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
   // Back buttons
   $('back-resumen').addEventListener('click', ()=>goPage('home'));
+  document.getElementById('back-25').addEventListener('click', ()=>goPage('home'));
+  document.getElementById('btn-print-25').addEventListener('click', print25);
   document.getElementById('btn-print-resumen').addEventListener('click', printResumen);
   $('back-lista').addEventListener('click', ()=>goPage('home'));
   $('back-search').addEventListener('click', ()=>goPage('home'));
@@ -1763,6 +1831,8 @@ document.addEventListener('DOMContentLoaded',function(){
   // Exponer funciones globalmente
   window.goLista = goLista;
   window.goResumen = goResumen;
+  window.go25new = go25new;
+  window.print25 = print25;
   window.toggleScanModal = toggleScanModal;
   window.stopScanModal = stopScanModal;
   window.printResumen = printResumen;
