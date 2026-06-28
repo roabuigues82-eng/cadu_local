@@ -330,6 +330,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
       <div class="scroll" id="content-25" style="background:#fff;padding:16px"></div>
     </div>
 
+    <!-- ANALISIS -->
+    <div class="page" id="pg-analisis">
+      <div class="pg-hdr">
+        <button class="back-btn" id="back-analisis">‹ Inicio</button>
+        <span class="pg-title" style="margin-left:6px">Análisis</span>
+        <button id="btn-exp-analisis" style="margin-left:auto;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;padding:5px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">📊 Excel</button>
+      </div>
+      <div class="scroll" id="analisis-content" style="background:var(--bg);padding:0 0 16px"></div>
+    </div>
+
     <!-- LISTA -->
     <div class="page" id="pg-lista">
       <div class="pg-hdr">
@@ -476,6 +486,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
   <nav class="nav">
     <button class="nb" id="nb-scan"><span class="nb-ico">📷</span><span>Escanear</span></button>
     <button class="nb" id="nb-red"><span class="nb-ico">📉</span><span>Reducciones</span></button>
+    <button class="nb" id="nb-analisis"><span class="nb-ico">📊</span><span>Análisis</span></button>
     <button class="nb" id="nb-exp"><span class="nb-ico">📤</span><span>Exportar</span></button>
   </nav>
 </div>
@@ -511,6 +522,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
     <div class="mbtns">
       <button class="mb-d" id="mb-del" style="display:none">Borrar</button>
       <button class="mb-green" id="mb-reducir" style="display:none">📉 Reducir</button>
+      <button class="mb-s" id="mb-vendido" style="display:none;background:#16a34a">✅ Vendido</button>
       <button class="mb-c" id="mb-cancel-prod">Cancelar</button>
       <button class="mb-s" id="mb-save-prod">Guardar</button>
     </div>
@@ -570,6 +582,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
   </div>
 </div>
 
+<!-- MODAL VENTA -->
+<div class="mbg" id="modal-venta">
+  <div class="modal">
+    <div class="mdrag"></div>
+    <h3>Registrar venta</h3>
+    <div style="background:var(--bg2);border:2px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px;color:var(--muted2)" id="venta-prod-info"></div>
+    <div class="mf">
+      <label>Unidades vendidas</label>
+      <input id="v-unidades" type="number" inputmode="numeric" min="1" placeholder="1">
+    </div>
+    <div class="mf">
+      <label>Precio por unidad (€)</label>
+      <input id="v-precio" type="number" step="0.05" inputmode="decimal" placeholder="0.00">
+    </div>
+    <div class="mf">
+      <label>Tipo de venta</label>
+      <select id="v-tipo">
+        <option value="normal">✅ Precio normal</option>
+        <option value="reducido">📉 Precio reducido</option>
+      </select>
+    </div>
+    <div class="mf">
+      <label>Fecha</label>
+      <input id="v-fecha" type="date">
+    </div>
+    <div class="mbtns">
+      <button class="mb-c" id="mb-cancel-venta">Cancelar</button>
+      <button class="mb-s" id="mb-save-venta" style="background:#16a34a">✅ Registrar venta</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -595,7 +639,8 @@ const LocalDB = (function(){
         { id: 'admin-001', usuario: 'admin', password: 'AdminCadu2026' }
       ],
       productos: [],
-      reducciones: []
+      reducciones: [],
+      ventas: []
     };
   }
 
@@ -950,7 +995,7 @@ function goPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   const pg=$('pg-'+id); if(pg) pg.classList.add('on');
-  const map={home:'nb-home',scan:'nb-scan',red:'nb-red',exp:'nb-exp',cfg:'nb-cfg'};
+  const map={home:'nb-home',scan:'nb-scan',red:'nb-red',exp:'nb-exp',cfg:'nb-cfg',analisis:'nb-analisis'};
   if(map[id]){const nb=$(map[id]); if(nb) nb.classList.add('on');}
   if(id==='home') buildHome();
   if(id==='exp') buildExp();
@@ -1173,6 +1218,7 @@ function openEdit(id){
   $('fk').value=p.codigo||'';
   $('mb-del').style.display='block';
   $('mb-reducir').style.display='block';
+  $('mb-vendido').style.display='block';
   $('modal-prod').classList.add('on');
 }
 
@@ -1185,6 +1231,7 @@ function openNew(){
   $('fc').value='Chuches y gominolas';
   $('mb-del').style.display='none';
   $('mb-reducir').style.display='none';
+  $('mb-vendido').style.display='none';
   $('modal-prod').classList.add('on');
 }
 
@@ -1707,6 +1754,158 @@ async function deleteRed(){
   }catch(e){toast('⚠ Error al eliminar');}
 }
 
+function goAnalisis(){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  $('pg-analisis').classList.add('on');
+  const nb=$('nb-analisis'); if(nb) nb.classList.add('on');
+  buildAnalisis();
+}
+
+function buildAnalisis(){
+  const el=$('analisis-content');
+  // Leer ventas del localStorage
+  const db=JSON.parse(localStorage.getItem('cadutedi_local_db_v1')||'{}');
+  const ventas=db.ventas||[];
+  const reds=reducciones||[];
+
+  // Calcular métricas
+  const ventasNormal=ventas.filter(v=>v.tipo==='normal');
+  const ventasReducido=ventas.filter(v=>v.tipo==='reducido');
+  const totalVentasNormal=ventasNormal.reduce((s,v)=>s+(v.total||v.precio||0),0);
+  const totalVentasReducido=ventasReducido.reduce((s,v)=>s+(v.total||0),0);
+  const totalRecuperado=reds.reduce((s,r)=>s+(r.precio_reducido||0)*r.unidades,0);
+  const totalDescuento=reds.reduce((s,r)=>s+((r.precio_original||0)-(r.precio_reducido||0))*r.unidades,0);
+  const totalGenerado=totalVentasNormal+totalRecuperado;
+
+  // Por mes
+  const porMes={};
+  ventas.forEach(v=>{
+    const m=v.fecha?v.fecha.slice(0,7):'sin-fecha';
+    if(!porMes[m]) porMes[m]={normal:0,reducido:0,count_n:0,count_r:0};
+    porMes[m].normal+=(v.total||v.precio||0); porMes[m].count_n++;
+  });
+  reds.forEach(r=>{
+    const m=r.fecha_reduccion?r.fecha_reduccion.slice(0,7):'sin-fecha';
+    if(!porMes[m]) porMes[m]={normal:0,reducido:0,count_n:0,count_r:0};
+    porMes[m].reducido+=(r.precio_reducido||0)*r.unidades; porMes[m].count_r++;
+  });
+
+  const meses=Object.keys(porMes).sort();
+  const maxVal=Math.max(...Object.values(porMes).map(v=>v.normal+v.reducido),1);
+
+  const barras=meses.map(m=>{
+    const v=porMes[m];
+    const total=v.normal+v.reducido;
+    const wN=Math.round(v.normal/maxVal*100);
+    const wR=Math.round(v.reducido/maxVal*100);
+    const label=m==='sin-fecha'?'S/F':m.slice(5)+'/'+m.slice(2,4);
+    return '<div style="margin-bottom:12px">'+
+      '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted2);margin-bottom:4px">'+
+        '<span>'+label+'</span><span style="font-weight:600;color:var(--text)">'+total.toFixed(2)+'€</span>'+
+      '</div>'+
+      '<div style="background:var(--bg2);border-radius:6px;height:24px;overflow:hidden;display:flex">'+
+        (wN>0?'<div style="width:'+wN+'%;background:#0284c7;display:flex;align-items:center;padding:0 6px"><span style="font-size:10px;color:#fff;white-space:nowrap">'+v.normal.toFixed(0)+'€</span></div>':'')+
+        (wR>0?'<div style="width:'+wR+'%;background:#f59e0b;display:flex;align-items:center;padding:0 6px"><span style="font-size:10px;color:#fff;white-space:nowrap">'+v.reducido.toFixed(0)+'€</span></div>':'')+
+      '</div>'+
+    '</div>';
+  }).join('');
+
+  el.innerHTML=
+    '<div class="stats-grid" style="padding:12px">'+
+      '<div class="sbox info"><div class="sbox-val">'+totalVentasNormal.toFixed(2)+'€</div><div class="sbox-lbl">Ventas precio normal</div></div>'+
+      '<div class="sbox warn"><div class="sbox-val">'+totalRecuperado.toFixed(2)+'€</div><div class="sbox-lbl">Recuperado reduciendo</div></div>'+
+      '<div class="sbox ok"><div class="sbox-val">'+totalGenerado.toFixed(2)+'€</div><div class="sbox-lbl">Total generado</div></div>'+
+      '<div class="sbox"><div class="sbox-val">'+totalDescuento.toFixed(2)+'€</div><div class="sbox-lbl">Descuento aplicado</div></div>'+
+    '</div>'+
+    '<div style="padding:0 12px 8px;display:flex;gap:10px;font-size:12px">'+
+      '<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:#0284c7;border-radius:3px;display:inline-block"></span>Precio normal</span>'+
+      '<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:#f59e0b;border-radius:3px;display:inline-block"></span>Precio reducido</span>'+
+    '</div>'+
+    (meses.length?'<div style="padding:0 12px">'+barras+'</div>':
+      '<div class="empty"><div class="empty-i">📊</div><div>Sin datos aún</div><div style="font-size:12px;color:var(--muted2);margin-top:4px">Marca productos como vendidos para ver el análisis</div></div>')+
+    '<div style="padding:12px;font-size:11px;color:var(--muted2)">'+
+      ventasNormal.length+' ventas normales · '+ventasReducido.length+' ventas reducidas · '+reds.length+' reducciones'+
+    '</div>';
+}
+
+function exportAnalisisXLSX(){
+  const db=JSON.parse(localStorage.getItem('cadutedi_local_db_v1')||'{}');
+  const ventas=db.ventas||[];
+  const reds=reducciones||[];
+  if(!ventas.length&&!reds.length){toast('Sin datos');return;}
+  if(typeof XLSX==='undefined'){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=()=>buildAnalisisXL(ventas,reds);document.head.appendChild(s);}
+  else buildAnalisisXL(ventas,reds);
+}
+
+function buildAnalisisXL(ventas,reds){
+  const wb=XLSX.utils.book_new();
+  // Hoja ventas normales
+  if(ventas.length){
+    const ws1=XLSX.utils.json_to_sheet(ventas.map(v=>({'Producto':v.producto_nombre,'Categoría':v.categoria,'Unidades':v.unidades||1,'Precio unitario':v.precio_unitario||v.precio,'Total':v.total||(v.precio||0),'Tipo':v.tipo==='normal'?'Precio normal':'Precio reducido','Fecha':v.fecha})));
+    XLSX.utils.book_append_sheet(wb,ws1,'Ventas normales');
+  }
+  // Hoja reducciones
+  if(reds.length){
+    const ws2=XLSX.utils.json_to_sheet(reds.map(r=>({'Producto':r.producto_nombre,'Precio original':r.precio_original,'Precio reducido':r.precio_reducido,'Unidades':r.unidades,'Recuperado':((r.precio_reducido||0)*r.unidades).toFixed(2),'Descuento':(((r.precio_original||0)-(r.precio_reducido||0))*r.unidades).toFixed(2),'Fecha':r.fecha_reduccion})));
+    XLSX.utils.book_append_sheet(wb,ws2,'Reducciones');
+  }
+  XLSX.writeFile(wb,'analisis_caducidades_'+hoy()+'.xlsx');
+  toast('✅ Excel descargado');
+}
+
+function openVenta(){
+  const p=productos.find(x=>x.id==editId); if(!p) return;
+  closeProd();
+  const ultima_red=reducciones.find(r=>String(r.producto_id)===String(p.id));
+  const precio_sugerido=ultima_red?ultima_red.precio_reducido:(p.precio||0);
+  const tipo_sugerido=ultima_red?'reducido':'normal';
+  document.getElementById('venta-prod-info').innerHTML=
+    '<b>'+p.nombre+'</b><br>'+
+    'Precio normal: <b>'+(p.precio!=null?p.precio.toFixed(2)+'€':'—')+'</b>'+
+    (ultima_red?' · Último precio reducido: <b>'+ultima_red.precio_reducido.toFixed(2)+'€</b>':'');
+  document.getElementById('v-unidades').value='1';
+  document.getElementById('v-precio').value=precio_sugerido?precio_sugerido.toFixed(2):'';
+  document.getElementById('v-tipo').value=tipo_sugerido;
+  document.getElementById('v-fecha').value=hoy();
+  document.getElementById('modal-venta').classList.add('on');
+}
+
+function closeVenta(){ document.getElementById('modal-venta').classList.remove('on'); }
+
+async function saveVenta(){
+  const p=productos.find(x=>x.id==editId); if(!p) return;
+  const unidades=parseInt(document.getElementById('v-unidades').value)||1;
+  const precio=parseFloat(document.getElementById('v-precio').value)||(p.precio||0);
+  const tipo=document.getElementById('v-tipo').value;
+  const fecha=document.getElementById('v-fecha').value||hoy();
+  if(unidades<1){toast('⚠ Introduce las unidades');return;}
+  try{
+    const venta={
+      id:'v-'+Date.now(),
+      tienda_id:tienda.id,
+      producto_id:p.id,
+      producto_nombre:p.nombre,
+      categoria:p.categoria||'',
+      precio_unitario:precio,
+      unidades:unidades,
+      total:precio*unidades,
+      tipo:tipo,
+      fecha:fecha,
+      created_at:new Date().toISOString()
+    };
+    const db=JSON.parse(localStorage.getItem('cadutedi_local_db_v1')||'{}');
+    if(!db.ventas) db.ventas=[];
+    db.ventas.push(venta);
+    localStorage.setItem('cadutedi_local_db_v1',JSON.stringify(db));
+    toast('✅ '+unidades+'ud vendidas a '+precio.toFixed(2)+'€/ud — '+(precio*unidades).toFixed(2)+'€ total');
+    closeVenta();
+    // Si quedan unidades, no borrar el producto - solo registrar la venta
+    // El usuario decide si borrar o actualizar manualmente
+    buildHome();
+  }catch(e){console.error(e);toast('⚠ Error');}
+}
+
 async function resetData(){
   if(!confirm('¿Borrar todos los productos y volver al catálogo original?')) return;
   toast('⏳ Reseteando...',10000);
@@ -1755,6 +1954,12 @@ document.addEventListener('DOMContentLoaded',function(){
   // Back buttons
   $('back-resumen').addEventListener('click', ()=>goPage('home'));
   document.getElementById('back-25').addEventListener('click', ()=>goPage('home'));
+  document.getElementById('mb-cancel-venta').addEventListener('click', closeVenta);
+  document.getElementById('mb-save-venta').addEventListener('click', saveVenta);
+  document.getElementById('modal-venta').addEventListener('click', e=>{if(e.target===document.getElementById('modal-venta')) closeVenta();});
+  document.getElementById('back-analisis').addEventListener('click', ()=>goPage('home'));
+  document.getElementById('btn-exp-analisis').addEventListener('click', exportAnalisisXLSX);
+  const nb_analisis=document.getElementById('nb-analisis'); if(nb_analisis) nb_analisis.addEventListener('click', goAnalisis);
   document.getElementById('btn-print-25').addEventListener('click', print25);
   document.getElementById('btn-print-resumen').addEventListener('click', printResumen);
   $('back-lista').addEventListener('click', ()=>goPage('home'));
@@ -1790,6 +1995,7 @@ document.addEventListener('DOMContentLoaded',function(){
   $('mb-cancel-prod').addEventListener('click', ()=>{ stopScanModal(); closeProd(); });
   $('mb-save-prod').addEventListener('click', saveItem);
   $('mb-del').addEventListener('click', deleteItem);
+  document.getElementById('mb-vendido').addEventListener('click', openVenta);
   $('mb-reducir').addEventListener('click', openReducir);
   $('modal-prod').addEventListener('click', e=>{if(e.target===$('modal-prod')){ stopScanModal(); closeProd(); }});
 
@@ -1841,6 +2047,12 @@ document.addEventListener('DOMContentLoaded',function(){
   window.openEdit = openEdit;
   window.setCat = setCat;
   window.closeProd = closeProd;
+  window.marcarVendido = marcarVendido;
+  window.goAnalisis = goAnalisis;
+  window.openVenta = openVenta;
+  window.closeVenta = closeVenta;
+  window.saveVenta = saveVenta;
+  window.exportAnalisisXLSX = exportAnalisisXLSX;
   window.saveItem = saveItem;
   window.deleteItem = deleteItem;
   window.openReducir = openReducir;
