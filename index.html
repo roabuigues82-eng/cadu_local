@@ -1922,6 +1922,34 @@ function buildAnalisisXL(ventas,reds){
     ws3['!cols']=[{wch:35},{wch:22},{wch:14},{wch:10},{wch:14},{wch:12},{wch:12}];
     XLSX.utils.book_append_sheet(wb,ws3,'Perdidas');
   }
+  // Hoja productos problemáticos (los que más se reducen o pierden)
+  const porProducto={};
+  reds.forEach(r=>{
+    const k=r.producto_nombre;
+    if(!porProducto[k]) porProducto[k]={nombre:k,categoria:r.producto_nombre,reducciones:0,perdida_reduccion:0,perdida_total:0,veces_caducado:0};
+    porProducto[k].reducciones++;
+    porProducto[k].perdida_reduccion+=(((r.precio_original||0)-(r.precio_reducido||0))*r.unidades);
+  });
+  perdidas.forEach(p=>{
+    const k=p.producto_nombre;
+    if(!porProducto[k]) porProducto[k]={nombre:k,categoria:p.categoria,reducciones:0,perdida_reduccion:0,perdida_total:0,veces_caducado:0};
+    porProducto[k].perdida_total+=(p.total||0);
+    porProducto[k].veces_caducado++;
+  });
+  const ranking=Object.values(porProducto).sort((a,b)=>(b.perdida_reduccion+b.perdida_total)-(a.perdida_reduccion+a.perdida_total));
+  if(ranking.length){
+    const ws4=XLSX.utils.json_to_sheet(ranking.map(p=>({
+      'Producto':p.nombre,
+      'Veces reducido':p.reducciones,
+      'Perdida por reduccion (EUR)':p.perdida_reduccion.toFixed(2),
+      'Veces caducado/roto':p.veces_caducado,
+      'Perdida total (EUR)':p.perdida_total.toFixed(2),
+      'Total perdida (EUR)':(p.perdida_reduccion+p.perdida_total).toFixed(2)
+    })));
+    ws4['!cols']=[{wch:35},{wch:14},{wch:22},{wch:18},{wch:18},{wch:16}];
+    XLSX.utils.book_append_sheet(wb,ws4,'Productos problematicos');
+  }
+
   XLSX.writeFile(wb,'analisis_caducidades_'+hoy()+'.xlsx');
   toast('Excel: '+ventas.length+' ventas, '+reds.length+' reducciones, '+perdidas.length+' perdidas');
 }
