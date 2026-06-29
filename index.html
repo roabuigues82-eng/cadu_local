@@ -1290,7 +1290,8 @@ async function toggleScanModal(){
     zxingModalReader=new ZXing.BrowserMultiFormatReader(hints);
     let video=container.querySelector('video');
     if(!video){video=document.createElement('video');video.style.width='100%';container.appendChild(video);}
-    await zxingModalReader.decodeFromConstraints({video:{facingMode:'environment'}},video,(result,err)=>{
+    modalCamOn=true;
+    zxingModalReader.decodeFromConstraints({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}},video,(result,err)=>{
       if(result){
         const code=result.getText(); if(!code) return;
         if(navigator.vibrate) navigator.vibrate(80);
@@ -1305,7 +1306,6 @@ async function toggleScanModal(){
         } else { toast('✅ Código: '+code); }
       }
     });
-    modalCamOn=true;
   }catch(e){
     let msg=e.message||String(e);
     if(msg.includes('ermission')||msg.includes('denied')) msg='Permiso denegado. Ajustes > Safari > Cámara';
@@ -1450,7 +1450,7 @@ function loadZXing(){
   return new Promise((res,rej)=>{
     if(typeof ZXing!=='undefined'){res();return;}
     const s=document.createElement('script');
-    s.src='https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js';
+    s.src='https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js';
     s.onload=()=>res(); s.onerror=()=>rej(new Error('Sin conexión para el escáner'));
     document.head.appendChild(s);
   });
@@ -1467,7 +1467,11 @@ async function startCam(){
     zxingReader=new ZXing.BrowserMultiFormatReader(hints);
     let video=$('quagga-target').querySelector('video');
     if(!video){video=document.createElement('video');video.style.cssText='width:100%;object-fit:cover';$('quagga-target').appendChild(video);}
-    await zxingReader.decodeFromConstraints({video:{facingMode:'environment'}},video,(result,err)=>{
+    camOn=true;
+    btn.textContent='⏹ Detener'; btn.disabled=false;
+    $('sline').style.display='block';
+    $('shit').textContent='Apunta al código de barras';
+    zxingReader.decodeFromConstraints({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}},video,(result,err)=>{
       if(result){
         const code=result.getText();
         if(!code||code===lastCode) return;
@@ -1477,10 +1481,6 @@ async function startCam(){
         setTimeout(()=>{lastCode=null;if(camOn)$('shit').textContent='Apunta al código de barras';},3000);
       }
     });
-    camOn=true;
-    btn.textContent='⏹ Detener'; btn.disabled=false;
-    $('sline').style.display='block';
-    $('shit').textContent='Apunta al código de barras';
   }catch(e){
     let msg=e.message||String(e);
     if(msg.includes('ermission')||msg.includes('denied')) msg='Permiso denegado. Ajustes > Safari > Cámara';
