@@ -1288,13 +1288,9 @@ async function toggleScanModal(){
     const hints=new Map();
     hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[ZXing.BarcodeFormat.EAN_13,ZXing.BarcodeFormat.EAN_8,ZXing.BarcodeFormat.CODE_128,ZXing.BarcodeFormat.UPC_A,ZXing.BarcodeFormat.UPC_E]);
     zxingModalReader=new ZXing.BrowserMultiFormatReader(hints);
-    const devices=await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
-    let deviceId=undefined;
-    const back=devices.find(d=>d.label.toLowerCase().includes('back')||d.label.toLowerCase().includes('rear'));
-    if(back) deviceId=back.deviceId; else if(devices.length>0) deviceId=devices[devices.length-1].deviceId;
     let video=container.querySelector('video');
     if(!video){video=document.createElement('video');video.style.width='100%';container.appendChild(video);}
-    await zxingModalReader.decodeFromVideoDevice(deviceId,video,(result,err)=>{
+    await zxingModalReader.decodeFromConstraints({video:{facingMode:'environment'}},video,(result,err)=>{
       if(result){
         const code=result.getText(); if(!code) return;
         if(navigator.vibrate) navigator.vibrate(80);
@@ -1469,13 +1465,9 @@ async function startCam(){
     const hints=new Map();
     hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[ZXing.BarcodeFormat.EAN_13,ZXing.BarcodeFormat.EAN_8,ZXing.BarcodeFormat.CODE_128,ZXing.BarcodeFormat.CODE_39,ZXing.BarcodeFormat.UPC_A,ZXing.BarcodeFormat.UPC_E]);
     zxingReader=new ZXing.BrowserMultiFormatReader(hints);
-    const devices=await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
-    let deviceId=undefined;
-    const back=devices.find(d=>d.label.toLowerCase().includes('back')||d.label.toLowerCase().includes('rear')||d.label.toLowerCase().includes('environment'));
-    if(back) deviceId=back.deviceId; else if(devices.length>0) deviceId=devices[devices.length-1].deviceId;
     let video=$('quagga-target').querySelector('video');
     if(!video){video=document.createElement('video');video.style.cssText='width:100%;object-fit:cover';$('quagga-target').appendChild(video);}
-    await zxingReader.decodeFromVideoDevice(deviceId,video,(result,err)=>{
+    await zxingReader.decodeFromConstraints({video:{facingMode:'environment'}},video,(result,err)=>{
       if(result){
         const code=result.getText();
         if(!code||code===lastCode) return;
