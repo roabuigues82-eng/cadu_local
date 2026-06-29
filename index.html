@@ -1454,13 +1454,52 @@ function loadQuagga(){
   return new Promise((res)=>{ res(); }); // Quagga ya está incrustado, siempre disponible
 }
 
+let nativeStream = null;
+let nativeScanInterval = null;
+
 async function startCam(){
-  if(typeof Quagga==='undefined'){
-    const btn=$('bcam'); btn.textContent='⏳ Cargando...'; btn.disabled=true;
-    try{ await loadQuagga(); }catch(e){ btn.textContent='📷 Activar cámara'; btn.disabled=false; toast('⚠ '+e.message); return; }
-    btn.disabled=false;
-  }
   const btn=$('bcam'); btn.textContent='⏳ Iniciando...'; btn.disabled=true;
+
+  // Intentar BarcodeDetector nativo (Safari 17+ en iPhone)
+  if('BarcodeDetector' in window){
+    try{
+      const detector = new BarcodeDetector({formats:['ean_13','ean_8','code_128','code_39','upc_a','upc_e','qr_code']});
+      const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}}});
+      nativeStream = stream;
+      let video=$('quagga-target').querySelector('video');
+      if(!video){video=document.createElement('video');video.style.cssText='width:100%;object-fit:cover';$('quagga-target').appendChild(video);}
+      video.srcObject=stream; await video.play();
+      camOn=true; btn.textContent='⏹ Detener'; btn.disabled=false;
+      $('sline').style.display='block';
+      $('shit').textContent='📱 Escáner nativo activo';
+      const canvas=document.createElement('canvas');
+      nativeScanInterval=setInterval(async()=>{
+        if(!camOn||video.readyState<2) return;
+        canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+        canvas.getContext('2d').drawImage(video,0,0);
+        try{
+          const codes=await detector.detect(canvas);
+          if(codes.length>0){
+            const code=codes[0].rawValue;
+            if(!code||code===lastCode) return;
+            lastCode=code; $('shit').textContent='✓ '+code;
+            if(navigator.vibrate) navigator.vibrate(80);
+            processCod(code);
+            setTimeout(()=>{lastCode=null;if(camOn)$('shit').textContent='Apunta al código de barras';},3000);
+          }
+        }catch(e){}
+      },300);
+      return;
+    }catch(e){
+      console.log('BarcodeDetector falló, usando Quagga:',e.message);
+      if(nativeStream){nativeStream.getTracks().forEach(t=>t.stop());nativeStream=null;}
+    }
+  }
+
+  // Fallback: Quagga
+  if(typeof Quagga==='undefined'){
+    try{ await loadQuagga(); }catch(e){ btn.textContent='📷 Activar cámara'; btn.disabled=false; toast('⚠ '+e.message); return; }
+  }
   Quagga.init({
     inputStream:{name:'Live',type:'LiveStream',target:$('quagga-target'),
       constraints:{width:{ideal:1280},height:{ideal:720},facingMode:'environment'},
@@ -1493,6 +1532,12 @@ async function startCam(){
 }
 
 function stopCam(){
+  // Parar BarcodeDetector nativo
+  if(nativeScanInterval){clearInterval(nativeScanInterval);nativeScanInterval=null;}
+  if(nativeStream){nativeStream.getTracks().forEach(t=>t.stop());nativeStream=null;}
+  const video=$('quagga-target').querySelector('video');
+  if(video){video.srcObject=null;}
+  // Parar Quagga
   try{Quagga.stop();}catch(e){}
   camOn=false;
   $('bcam').textContent='📷 Activar cámara';
