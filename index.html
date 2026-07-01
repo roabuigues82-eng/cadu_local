@@ -320,6 +320,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
       <div class="scroll" id="resumen-content" style="background:#fff;padding:16px"></div>
     </div>
 
+    <!-- 15 DIAS -->
+    <div class="page" id="pg-15">
+      <div class="pg-hdr">
+        <button class="back-btn" id="back-15">‹ Inicio</button>
+        <span class="pg-title" style="margin-left:6px">Caducan en 15 días</span>
+        <button id="btn-print-15" style="margin-left:auto;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;padding:5px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">🖨️ Imprimir</button>
+      </div>
+      <div class="scroll" id="content-15" style="background:#fff;padding:16px"></div>
+    </div>
+
     <!-- 25 DIAS -->
     <div class="page" id="pg-25">
       <div class="pg-hdr">
@@ -383,7 +393,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 
     <!-- SCANNER -->
     <div class="page" id="pg-scan">
-      <div class="pg-hdr"><span class="pg-title">Escanear</span></div>
+      <div class="pg-hdr"><span class="pg-title">Añadir producto</span></div>
       <div class="scan-vid">
         <div id="quagga-target">
           <div class="scan-corners"><div class="sf"><div class="ct"></div><div class="cb"></div><div class="sline" id="sline"></div></div></div>
@@ -394,11 +404,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
         <button class="bcam" id="bcam">📷 Activar cámara</button>
         <button class="bflip" id="bflip">🔄</button>
       </div>
-      <div class="scan-manual">
-        <input type="text" id="mi" placeholder="O escribe código / nombre..." inputmode="numeric">
-        <button id="mbuscar">Buscar</button>
+      <!-- Formulario añadir producto integrado -->
+      <div class="scroll" id="scan-form-wrap" style="background:var(--bg)">
+        <div style="padding:10px 12px;display:flex;gap:8px;background:var(--bg2);border-bottom:2px solid var(--border)">
+          <div class="sw" style="flex:1">
+            <span class="sw-ico">🔍</span>
+            <input type="text" id="mi" placeholder="Código o nombre..." inputmode="numeric" style="width:100%;background:var(--white);border:2px solid var(--border);border-radius:10px;padding:9px 10px 9px 34px;color:var(--text);font-size:14px;outline:none;font-family:inherit;-webkit-appearance:none">
+          </div>
+          <button id="mbuscar" style="background:var(--text2);border:none;border-radius:10px;padding:9px 14px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Buscar</button>
+        </div>
+        <!-- Resultado de búsqueda -->
+        <div id="scan-res"></div>
+        <!-- Formulario añadir siempre visible -->
+        <div style="padding:12px;border-top:2px solid var(--border);margin-top:4px">
+          <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">➕ Añadir producto</div>
+          <div class="nf" style="margin-bottom:8px"><label style="display:block;font-size:12px;color:var(--muted2);font-weight:600;margin-bottom:4px">Nombre</label><input id="scan-nombre" type="text" placeholder="Nombre del producto" autocomplete="off" style="width:100%;background:var(--white);border:2px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:14px;outline:none;font-family:inherit;-webkit-appearance:none"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div class="nf"><label style="display:block;font-size:12px;color:var(--muted2);font-weight:600;margin-bottom:4px">Código</label><input id="scan-codigo" type="text" inputmode="numeric" style="width:100%;background:var(--white);border:2px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:14px;outline:none;font-family:inherit;-webkit-appearance:none;font-family:monospace"></div>
+            <div class="nf"><label style="display:block;font-size:12px;color:var(--muted2);font-weight:600;margin-bottom:4px">Precio (€)</label><input id="scan-precio" type="number" step="0.05" inputmode="decimal" style="width:100%;background:var(--white);border:2px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:14px;outline:none;font-family:inherit;-webkit-appearance:none"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+            <div class="nf"><label style="display:block;font-size:12px;color:var(--muted2);font-weight:600;margin-bottom:4px">Fecha caducidad</label><input id="scan-fecha" type="date" style="width:100%;background:var(--white);border:2px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit;-webkit-appearance:none"></div>
+            <div class="nf"><label style="display:block;font-size:12px;color:var(--muted2);font-weight:600;margin-bottom:4px">Categoría</label>
+              <select id="scan-cat" style="width:100%;background:var(--white);border:2px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit;-webkit-appearance:none">
+                <option>Chuches y gominolas</option><option>Mascotas</option>
+                <option>Bebidas</option><option>Pilas</option>
+                <option>Chocolates y galletas</option><option>Chicles y caramelos duros</option>
+                <option>Snacks salados</option>
+              </select>
+            </div>
+          </div>
+          <button id="btn-scan-guardar" style="width:100%;background:var(--accent);border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;color:#fff;box-shadow:0 2px 8px rgba(245,158,11,.3)">✅ Guardar producto</button>
+        </div>
       </div>
-      <div class="scan-res" id="scan-res"></div>
     </div>
 
     <!-- REDUCCIONES -->
@@ -484,7 +522,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 
   <!-- NAV -->
   <nav class="nav">
-    <button class="nb" id="nb-scan"><span class="nb-ico">📷</span><span>Escanear</span></button>
+    <button class="nb" id="nb-scan"><span class="nb-ico">➕</span><span>Añadir</span></button>
     <button class="nb" id="nb-red"><span class="nb-ico">📉</span><span>Reducciones</span></button>
     <button class="nb" id="nb-analisis"><span class="nb-ico">📊</span><span>Análisis</span></button>
     <button class="nb" id="nb-exp"><span class="nb-ico">📤</span><span>Exportar</span></button>
@@ -1011,6 +1049,7 @@ function buildHome(){
   const urg=productos.filter(p=>est(p)==='u').length;
   const hoy_count=productos.filter(p=>dias(p.fecha)===0).length;
   const p25=productos.filter(p=>dias(p.fecha)===25).length;
+  const p15=productos.filter(p=>dias(p.fecha)===15).length;
   const total=productos.length;
   const ht=$('home-title'), hs=$('home-sub');
   if(ht) ht.textContent='Hola, '+tienda.nombre;
@@ -1019,7 +1058,7 @@ function buildHome(){
     '<div class="gc gc1" data-action="goResumen"><span class="gc-arr">›</span><div class="gc-ico">🔴</div><div class="gc-val">'+hoy_count+'</div><div class="gc-lbl">Caducan hoy</div></div>'+
     '<div class="gc gc2" data-action="go25new"><span class="gc-arr">›</span><div class="gc-ico">⏰</div><div class="gc-val">'+p25+'</div><div class="gc-lbl">Caducan en 25d</div></div>'+
     '<div class="gc gc3" data-action="goLista" data-sf="all"><span class="gc-arr">›</span><div class="gc-ico">📦</div><div class="gc-val">'+total+'</div><div class="gc-lbl">Todos los productos</div></div>'+
-    '<div class="gc gc4" data-action="openNew"><span class="gc-arr">›</span><div class="gc-ico">➕</div><div class="gc-val"></div><div class="gc-lbl">Añadir producto</div></div>';
+    '<div class="gc gc4" data-action="go15"><span class="gc-arr">›</span><div class="gc-ico">⏰</div><div class="gc-val">'+p15+'</div><div class="gc-lbl">Caducan en<br>15 días</div></div>';
 }
 
 // ═══════════════════════════════════════════
@@ -1108,6 +1147,60 @@ function goLista(sf='all', cat='all'){
 }
 
 function go25(){ goLista('p25','all'); }
+
+function go15(){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  $('pg-15').classList.add('on');
+  build15();
+}
+
+function build15(){
+  const prods=productos.filter(p=>dias(p.fecha)===15).sort((a,b)=>(a.categoria||'').localeCompare(b.categoria||''));
+  const el=$('content-15');
+  const fecha=new Date().toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  if(!prods.length){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:#64748b"><div style="font-size:48px;margin-bottom:12px">✅</div><div style="font-size:18px;font-weight:600;color:#0c4a6e">Sin productos a 15 días hoy</div><div style="font-size:14px;margin-top:8px;color:#64748b">'+fecha+'</div></div>';
+    return;
+  }
+  const porCat={};
+  prods.forEach(p=>{if(!porCat[p.categoria])porCat[p.categoria]=[];porCat[p.categoria].push(p);});
+  let rows='';
+  Object.entries(porCat).forEach(([cat,ps])=>{
+    rows+='<tr><td colspan="4" style="background:#dc2626;color:#fff;font-weight:700;padding:8px 10px;font-size:13px">'+cat+' ('+ps.length+')</td></tr>';
+    ps.forEach(p=>{
+      rows+='<tr><td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:13px">'+p.nombre+'</td>'+
+            '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:11px;text-align:center;font-family:monospace;color:#64748b">'+(p.codigo||'—')+'</td>'+
+            '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:13px;text-align:center;font-family:monospace">'+fmt(p.fecha)+'</td>'+
+            '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:13px;text-align:right;color:#dc2626;font-weight:600">'+(p.precio!=null?p.precio.toFixed(2)+'€':'—')+'</td></tr>';
+    });
+  });
+  el.innerHTML='<div style="font-family:Arial,sans-serif;color:#0c4a6e">'+
+    '<div style="text-align:center;margin-bottom:16px">'+
+      '<div style="font-size:22px;font-weight:800;color:#dc2626">⏰ Caducan en 15 días</div>'+
+      '<div style="font-size:13px;color:#64748b;margin-top:4px">'+fecha+' · '+prods.length+' producto'+(prods.length>1?'s':'')+'</div>'+
+      '<div style="font-size:12px;color:#64748b">Tienda: '+(tienda?tienda.nombre:'')+'</div>'+
+    '</div>'+
+    '<table style="width:100%;border-collapse:collapse">'+
+      '<thead><tr style="background:#f1f5f9">'+
+        '<th style="padding:8px 10px;text-align:left;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Nombre</th>'+
+        '<th style="padding:8px 10px;text-align:center;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Código</th>'+
+        '<th style="padding:8px 10px;text-align:center;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Caduca</th>'+
+        '<th style="padding:8px 10px;text-align:right;font-size:12px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0">Precio</th>'+
+      '</tr></thead>'+
+      '<tbody>'+rows+'</tbody>'+
+    '</table>'+
+  '</div>';
+}
+
+function print15(){
+  const contenido=$('content-15').innerHTML;
+  const win=window.open('','_blank');
+  if(!win){toast('Activa ventanas emergentes');return;}
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>15 días</title><style>body{font-family:Arial,sans-serif;margin:20px;color:#0c4a6e}@media print{body{margin:10px}}</style></head><body>'+contenido+'</body></html>');
+  win.document.close();
+  setTimeout(()=>win.print(),500);
+}
 
 function go25new(){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
@@ -1551,7 +1644,45 @@ function processCod(code){
   const byCode=productos.filter(p=>p.codigo&&p.codigo===code);
   const byName=!byCode.length&&code.length>2?productos.filter(p=>p.nombre.toLowerCase().includes(code.toLowerCase())):[];
   const matches=byCode.length?byCode:byName;
+  // Rellenar código en formulario integrado
+  const scanCod=document.getElementById('scan-codigo');
+  if(scanCod) scanCod.value=code;
+  // Si existe producto, rellenar nombre y precio
+  if(matches.length){
+    const p=matches[0];
+    const scanNom=document.getElementById('scan-nombre');
+    const scanPre=document.getElementById('scan-precio');
+    const scanCat=document.getElementById('scan-cat');
+    if(scanNom) scanNom.value=p.nombre;
+    if(scanPre) scanPre.value=p.precio||'';
+    if(scanCat) scanCat.value=p.categoria||'Chuches y gominolas';
+    toast('📦 '+p.nombre+' — cambia la fecha y guarda');
+  } else {
+    toast('✅ Código '+code+' — rellena los datos');
+  }
   renderScanRes(code,matches);
+}
+
+async function guardarDesdeScanner(){
+  const nombre=(document.getElementById('scan-nombre').value||'').trim();
+  if(!nombre){toast('⚠ Escribe un nombre');return;}
+  const codigo=(document.getElementById('scan-codigo').value||'').trim();
+  const precio=parseFloat(document.getElementById('scan-precio').value)||null;
+  const fecha=document.getElementById('scan-fecha').value||null;
+  const cat=document.getElementById('scan-cat').value||'Chuches y gominolas';
+  try{
+    const item={tienda_id:tienda.id,nombre,codigo,precio,fecha,categoria:cat};
+    const {data:row,error}=await sb.from('productos').insert(item).select().single();
+    if(error) throw error;
+    productos.push({...row});
+    // Limpiar formulario
+    ['scan-nombre','scan-codigo','scan-precio','scan-fecha'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    document.getElementById('scan-res').innerHTML='';
+    toast('✅ Producto añadido');
+    buildHome();
+  }catch(e){console.error(e);toast('⚠ Error al guardar');}
 }
 
 function renderScanRes(code,matches){
@@ -1615,6 +1746,7 @@ function reducirDesdeScanner(pid){ editId=pid; $('scan-res').innerHTML=''; openR
 function buildExp(){
   const urg=productos.filter(p=>est(p)==='u').length;
   const p25=productos.filter(p=>dias(p.fecha)===25).length;
+  const p15=productos.filter(p=>dias(p.fecha)===15).length;
   const cad=productos.filter(p=>est(p)==='c').length;
   $('exp-stats').innerHTML=
     '<div class="sbox"><div class="sbox-val">'+productos.length+'</div><div class="sbox-lbl">Total</div></div>'+
@@ -2100,6 +2232,7 @@ document.addEventListener('click',function(e){
   else if(a==='openNew') openNew();
   else if(a==='goResumen') goResumen();
   else if(a==='go25new') go25new();
+  else if(a==='go15') go15();
   else if(a==='openEditRed') openEditRed(id);
 });
 
@@ -2126,6 +2259,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
   // Back buttons
   $('back-resumen').addEventListener('click', ()=>goPage('home'));
+  document.getElementById('back-15').addEventListener('click', ()=>goPage('home'));
+  document.getElementById('btn-print-15').addEventListener('click', print15);
   document.getElementById('back-25').addEventListener('click', ()=>goPage('home'));
   document.getElementById('mb-cancel-venta').addEventListener('click', closeVenta);
   document.getElementById('mb-save-venta').addEventListener('click', saveVenta);
@@ -2153,6 +2288,7 @@ document.addEventListener('DOMContentLoaded',function(){
   // Scanner
   $('bcam').addEventListener('click', toggleCam);
   $('mbuscar').addEventListener('click', ()=>processCod($('mi').value.trim()));
+  document.getElementById('btn-scan-guardar').addEventListener('click', guardarDesdeScanner);
   $('mi').addEventListener('keydown', e=>{if(e.key==='Enter') processCod($('mi').value.trim());});
   $('scan-res').addEventListener('click',function(e){
     const btn=e.target.closest('button'); if(!btn) return;
@@ -2215,8 +2351,11 @@ document.addEventListener('DOMContentLoaded',function(){
   window.goLista = goLista;
   window.goResumen = goResumen;
   window.go25new = go25new;
+  window.go15 = go15;
+  window.print15 = print15;
   window.print25 = print25;
   window.toggleScanModal = toggleScanModal;
+  window.guardarDesdeScanner = guardarDesdeScanner;
   window.stopScanModal = stopScanModal;
   window.printResumen = printResumen;
   window.go25 = go25;
